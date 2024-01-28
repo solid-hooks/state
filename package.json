@@ -1,0 +1,64 @@
+{
+  "name": "@solid-hooks/state",
+  "type": "module",
+  "version": "0.0.3",
+  "description": "state management for solid-js",
+  "author": "subframe7536",
+  "license": "MIT",
+  "repository": "https://github.com/solid-hooks/state",
+  "bugs": "https://github.com/solid-hooks/state/issues",
+  "keywords": [
+    "typescript"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.cjs",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "tsc --noEmit && eslint . --max-warnings 0",
+    "dev": "vite serve playground",
+    "format": "eslint . --fix",
+    "build": "tsup",
+    "release": "pnpm lint && pnpm test && pnpm run build && bumpp --all && npm publish",
+    "test": "vitest --run"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "peerDependencies": {
+    "solid-js": "^1"
+  },
+  "dependencies": {
+    "klona": "^2.0.6",
+    "object-path-access": "^3.0.0"
+  },
+  "devDependencies": {
+    "@subframe7536/eslint-config": "^0.5.9",
+    "@subframe7536/type-utils": "^0.1.4",
+    "@types/node": "^20.11.9",
+    "bumpp": "^9.3.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-solid": "^0.13.1",
+    "jsdom": "^24.0.0",
+    "solid-js": "^1.8.12",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.12",
+    "vite-plugin-solid": "^2.9.1",
+    "vitest": "^1.2.2"
+  }
+}
