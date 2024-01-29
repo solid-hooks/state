@@ -2,7 +2,7 @@
   "name": "@solid-hooks/state",
   "type": "module",
   "version": "0.1.0",
-  "description": "state management for solid-js",
+  "description": "global state management for solid-js",
   "author": "subframe7536",
   "license": "MIT",
   "repository": "https://github.com/solid-hooks/state",

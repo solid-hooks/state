@@ -4,9 +4,9 @@
 
 # @solid-hooks/state
 
-state management for solid.js
+global state management for solid.js
 
-inspired by Pinia
+inspired by [Pinia](https://github.com/vuejs/pinia)
 
 ## Install
 
@@ -46,9 +46,9 @@ const useTestState = defineState('test', {
     key: 'other key', // state.$id by default
     serializer: { write: JSON.stringify, read: JSON.parse, }, // JSON by default
     storage: localStorage, // localStorage by default, async storage available
-    path: ['test'] // state access path type safe, support array
+    path: ['test'] // type-safe state access path, support array
   },
-}, true) // set true to enable DEV log
+})
 
 // usage
 const [state, actions] = useTestState()
@@ -97,8 +97,8 @@ export const useCustomState = defineState('custom', (name, log) => {
   createEffect(() => {
     log('defineState with custom function:', { name, newValue: plain() })
   })
-  const plus2 = createMemo(plain() + 2) // recognized as 'getter' on type
-  function add() { // recognized as 'action' on type
+  const plus2 = createMemo(plain() + 2)
+  function add() {
     setPlain(p => p + 1)
   }
   return { plain, plus2, add }

@@ -69,11 +69,10 @@ export function defineState<
 >(
   name: string,
   setup: StateSetupObject<State, Getter, Action, Paths> | StateSetupFunction<State>,
-  _log?: boolean,
 ): Accessor<State | StateReturn<State, Getter, Action>> {
   const stateName = `state-${name}`
   let build = typeof setup === 'function' ? setup : setupObject(setup)
-  const log = (...args: any[]) => _log && console.log(`[${stateName}]`, ...args)
+  const log = (...args: any[]) => console.log(`[${stateName}]`, ...args)
 
   return () => {
     const ctx = useContext(STATE_CTX)
@@ -155,6 +154,7 @@ function setupObject<
     DEV && log('initial state:', unwrap(state))
 
     if (persist?.enable) {
+      DEV && log('enable persist')
       let unchanged = 1
       function serializeState() {
         const currentState = unwrap(state)
@@ -172,15 +172,7 @@ function setupObject<
       }
 
       function maybePromise<T>(maybePromise: Promisable<T>, cb: (data: T) => void) {
-        if (maybePromise instanceof Promise) {
-          maybePromise.then(cb).catch(e => DEV && log(e))
-        } else {
-          try {
-            cb(maybePromise)
-          } catch (e) {
-            DEV && log(e)
-          }
-        }
+        maybePromise instanceof Promise ? maybePromise.then(cb) : cb(maybePromise)
       }
 
       function readStorage(onRead: (data: string | null) => void) {
@@ -199,7 +191,6 @@ function setupObject<
           old !== serialized && maybePromise(
             storage.setItem(key, serialized),
             () => {
-              DEV && log('persist state:', serialized)
               unchanged && unchanged--
             },
           )
