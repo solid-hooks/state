@@ -148,7 +148,7 @@ type ConvertType<T> = {
 }
 
 /**
- * serializer type for {@link $state}
+ * serializer type for {@link PersistOptions}
  */
 export type Serializer<State> = {
   /**
