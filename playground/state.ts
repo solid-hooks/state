@@ -1,4 +1,4 @@
-import { defineState } from '../src/index'
+import { defineState, persistStateFn } from '../src/index'
 
 export const useTestState = defineState('test', {
   init: { count: 0 },
@@ -9,7 +9,5 @@ export const useTestState = defineState('test', {
     inc: () => setState('count', count => count + 1),
     dec: () => setState('count', count => count - 1),
   }),
-  persist: {
-    enable: true,
-  },
+  stateFn: persistStateFn(),
 })

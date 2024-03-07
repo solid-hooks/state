@@ -1,4 +1,5 @@
 export * from './core'
+export * from './storage'
 export type {
   AnyStorage,
   InitialState,

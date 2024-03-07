@@ -25,7 +25,7 @@ pnpm add @solid-hooks/state
 support run without provider (use `createRoot`)
 
 ```tsx
-import { GlobalStateProvider, defineState } from '@solid-hooks/state'
+import { GlobalStateProvider, defineState, persistStateFn } from '@solid-hooks/state'
 
 // like Pinia's Option Store
 const useTestState = defineState('test', {
@@ -41,13 +41,13 @@ const useTestState = defineState('test', {
       setState('value', value => value + num)
     },
   }),
-  persist: {
-    enable: true,
+  // custom state function
+  stateFn: persistStateFn({
     key: 'other key', // state.$id by default
     serializer: { write: JSON.stringify, read: JSON.parse, }, // JSON by default
     storage: localStorage, // localStorage by default, async storage available
     path: ['test'] // type-safe state access path, support array
-  },
+  }),
 })
 
 // usage

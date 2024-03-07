@@ -1,5 +1,5 @@
 import type { Path, PathValue } from 'object-path-access'
-import type { SetStoreFunction, Store } from 'solid-js/store'
+import type { SetStoreFunction, Store, createStore } from 'solid-js/store'
 import type { AnyFunction } from '@subframe7536/type-utils'
 import type { Accessor, OnEffectFunction, OnOptions } from 'solid-js'
 
@@ -55,7 +55,6 @@ export type StateSetupObject<
   State extends object,
   Getter extends GetterObject,
   Action extends ActionObject,
-  Paths extends Path<State>[],
 > = {
   /**
    * initial state, support object or Store (return of `createStore`)
@@ -75,9 +74,9 @@ export type StateSetupObject<
    */
   actions?: StateAction<State, Action>
   /**
-   * persist options for state
+   * custom state function
    */
-  persist?: PersistOptions<State, Paths>
+  stateFn?: (state: State, stateName: string) => ReturnType<typeof createStore<State>>
 }
 
 export type StateAction<

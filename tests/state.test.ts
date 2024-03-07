@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'solid-js'
-import { defineState } from '../src'
+import { defineState, persistStateFn } from '../src'
 
 describe('test state', () => {
   it('defineState', async () => {
@@ -103,8 +103,7 @@ describe('test state', () => {
         increment: () => setState('count', n => n + 1),
         decrement: () => setState('count', n => n - 1),
       }),
-      persist: {
-        enable: true,
+      stateFn: persistStateFn({
         key,
         storage: {
           getItem(key) {
@@ -117,7 +116,7 @@ describe('test state', () => {
             kv.delete(key)
           },
         },
-      },
+      }),
     }, true)
     const [, actions] = useState()
 
@@ -149,8 +148,7 @@ describe('test state', () => {
           setState('partialPersist', ['decrement', `${state.persist.count}`])
         },
       }),
-      persist: {
-        enable: true,
+      stateFn: persistStateFn({
         key,
         storage: {
           getItem(key) {
@@ -164,7 +162,7 @@ describe('test state', () => {
           },
         },
         paths: ['persist.count', 'partialPersist[0]'],
-      },
+      }),
     })
     const [,actions] = useState()
 
