@@ -1,4 +1,4 @@
-import { type Path, pathGet, pathSet } from 'object-path-access'
+import { pathGet } from 'object-path-access'
 import type { Accessor, FlowProps, Owner } from 'solid-js'
 import {
   DEV,
@@ -14,7 +14,7 @@ import {
 } from 'solid-js'
 import { createStore, produce, reconcile, unwrap } from 'solid-js/store'
 import { klona as deepClone } from 'klona'
-import type { AnyFunction, Promisable } from '@subframe7536/type-utils'
+import type { AnyFunction } from '@subframe7536/type-utils'
 import type {
   ActionObject,
   GetterObject,
