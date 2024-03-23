@@ -1,7 +1,8 @@
-import type { Promisable } from '@subframe7536/type-utils'
 import { type Path, type PathValue, pathGet, pathSet } from 'object-path-access'
 import { createStore, reconcile, unwrap } from 'solid-js/store'
 import type { BaseOptions } from 'solid-js/types/reactive/signal.js'
+import { maybePromise } from './utils'
+import type { PersistenceSyncAPI, PersistenceSyncData } from './sync'
 
 export type PersistOptions<State extends object, Paths extends Path<State>[] = []> = {
   /**
@@ -19,7 +20,13 @@ export type PersistOptions<State extends object, Paths extends Path<State>[] = [
    * @example ['test.deep.data', 'idList[0]']
    */
   paths?: Paths | undefined
+  /**
+   * sync persisted data,
+   * built-in: {@link storageSync}, {@link messageSync}, {@link wsSync}, {@link multiSync}
+   */
+  sync?: PersistenceSyncAPI
 }
+
 type PartialObject<
   T extends object,
   K extends Path<T>[],
@@ -63,9 +70,7 @@ export type Serializer<State> = {
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
 export type AnyStorage = StorageLike | {
-  [K in keyof StorageLike]: (
-    ...args: Parameters<StorageLike[K]>
-  ) => Promise<ReturnType<StorageLike[K]>>
+  [K in keyof StorageLike]: (...args: Parameters<StorageLike[K]>) => Promise<ReturnType<StorageLike[K]>>
 }
 
 /**
@@ -84,6 +89,7 @@ export function useStorage<T extends object, Paths extends Path<T>[]>(
       read: JSON.parse,
     },
     storage = localStorage,
+    sync,
   } = options
   const [state, setState] = createStore(initialValue, { name })
   let unchanged = 1
@@ -102,10 +108,6 @@ export function useStorage<T extends object, Paths extends Path<T>[]>(
     return serializedState
   }
 
-  function maybePromise<T>(maybePromise: Promisable<T>, cb: (data: T) => void) {
-    maybePromise instanceof Promise ? maybePromise.then(cb) : cb(maybePromise)
-  }
-
   function readStorage(onRead: (data: string | null) => void) {
     maybePromise(storage.getItem(key), data => onRead(data))
   }
@@ -114,6 +116,17 @@ export function useStorage<T extends object, Paths extends Path<T>[]>(
     ? unchanged && setState(reconcile(Object.assign({}, unwrap(state), read(old)), { merge: true }))
     : storage.setItem(key, serializeState()),
   )
+
+  sync?.[0]((data: PersistenceSyncData) => {
+    if (data.key === name && data.newValue && (!data.url || (data.url === globalThis.location.href))) {
+      const old = serializeState()
+      if (old !== data.newValue) {
+        setState(reconcile(Object.assign({}, unwrap(state), read(data.newValue)), { merge: true }))
+        storage.setItem(key, data.newValue)
+      }
+    }
+  })
+
   return [
     state,
     (...args: any[]) => {
@@ -121,12 +134,13 @@ export function useStorage<T extends object, Paths extends Path<T>[]>(
       readStorage((old) => {
         const serialized = serializeState()
 
-        old !== serialized && maybePromise(
-          storage.setItem(key, serialized),
-          () => {
-            unchanged && unchanged--
-          },
-        )
+        if (old !== serialized) {
+          sync?.[1](key, serialized)
+          maybePromise(
+            storage.setItem(key, serialized),
+            () => unchanged && unchanged--,
+          )
+        }
       })
     },
   ]

@@ -9,3 +9,4 @@ export type {
   StateReturn,
 } from './types'
 export { klona as deepClone } from 'klona'
+export * from './sync'

@@ -4,9 +4,7 @@
 
 # @solid-hooks/state
 
-global state management for solid.js
-
-inspired by [Pinia](https://github.com/vuejs/pinia)
+Pinia like global state management for solid.js
 
 ## Install
 
@@ -25,7 +23,7 @@ pnpm add @solid-hooks/state
 support run without provider (use `createRoot`)
 
 ```tsx
-import { GlobalStateProvider, defineState, persistStateFn } from '@solid-hooks/state'
+import { GlobalStateProvider, defineState, persistStateFn, storageSync } from '@solid-hooks/state'
 
 // like Pinia's Option Store
 const useTestState = defineState('test', {
@@ -43,10 +41,11 @@ const useTestState = defineState('test', {
   }),
   // custom state function
   stateFn: persistStateFn({
-    key: 'other key', // state.$id by default
+    key: 'other-key', // state.$id by default
     serializer: { write: JSON.stringify, read: JSON.parse, }, // JSON by default
     storage: localStorage, // localStorage by default, async storage available
-    path: ['test'] // type-safe state access path, support array
+    path: ['test'], // type-safe state access path, support array
+    sync: storageSync, // sync persisted data
   }),
 })
 
@@ -91,16 +90,32 @@ or just a global-level context & provider
 import { createEffect, createMemo, createSignal } from 'solid-js'
 import { defineState } from '@solid-hooks/state'
 
-// like Pinia's Setup Store
 export const useCustomState = defineState('custom', (name, log) => {
   const [plain, setPlain] = createSignal(1)
   createEffect(() => {
     log('defineState with custom function:', { name, newValue: plain() })
   })
-  const plus2 = createMemo(plain() + 2)
+  const plus2 = createMemo(() => plain() + 2)
   function add() {
     setPlain(p => p + 1)
   }
   return { plain, plus2, add }
 })
 ```
+
+### Utils
+
+persist store to storage.
+
+low level function for `persistStateFn`
+
+```ts
+import { useStorage } from '@solid-hooks/state'
+
+const [data, setData] = useStorage({ test: 1 }, 'test-data', {/* options */})
+```
+
+## Credit
+
+- [Pinia](https://github.com/vuejs/pinia)
+- [@solid-primitives/storage](https://github.com/solidjs-community/solid-primitives/tree/main/packages/storage)
