@@ -39,14 +39,6 @@ const useTestState = defineState('test', {
       setState('value', value => value + num)
     },
   }),
-  // custom state function
-  stateFn: persistStateFn({
-    key: 'other-key', // state.$id by default
-    serializer: { write: JSON.stringify, read: JSON.parse, }, // JSON by default
-    storage: localStorage, // localStorage by default, async storage available
-    path: ['test'], // type-safe state access path, support array
-    sync: storageSync, // sync persisted data
-  }),
 })
 
 // usage
@@ -101,6 +93,38 @@ export const useCustomState = defineState('custom', (name, log) => {
   }
   return { plain, plus2, add }
 })
+```
+
+### Persist
+
+```ts
+import { defineState, persistStateFn, storageSync } from '@solid-hooks/state'
+
+const useTestState = defineState('test', {
+  init,
+  // ...
+  // custom state function
+  stateFn: persistStateFn({
+    key: 'other-key', // state.$id by default
+    serializer: { write: JSON.stringify, read: JSON.parse, }, // JSON by default
+    storage: localStorage, // localStorage by default, async storage available
+    path: ['test'], // type-safe state access path, support array
+    sync: storageSync, // sync persisted data
+  }),
+})
+```
+
+#### IndexedDB
+
+```ts
+import { createIdbStorage, persistStateFn } from '@solid-hooks/state'
+import { del, get, set } from 'idb-keyval'
+
+const idbStorage = createIdbStorage({ get, set, del })
+const stateFn = persistStateFn({
+  storage: idbStorage,
+  // ...
+}),
 ```
 
 ### Utils

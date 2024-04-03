@@ -32,11 +32,65 @@ type GlobalStateContext = {
 
 const STATE_CTX = createContext<GlobalStateContext>({ owner: null, map: new Map() })
 /**
- * initialize global state with setup object
+ * initialize global state with setup object.
+ * If you want to persist data, see {@link persistStateFn persistStateFn}
  * @param name state name
- * @param setup state setup object
+ * @param setup state setup object, see {@link StateSetupObject type}
  * @param _log whether to enable log when dev, default is `false`
- * @see https://github.com/subframe7536/solid-dollar#state
+ * @example
+ * ```tsx
+ * import { GlobalStateProvider, defineState, storageSync } from '@solid-hooks/state'
+ *
+ * // like Pinia's Option Store
+ * const useTestState = defineState('test', {
+ *   init: { value: 1, deep: { data: 'hello' } },
+ *   getter: state => ({
+ *     // without param, will auto wrapped with `createMemo`
+ *     doubleValue() {
+ *       return state.value * 2
+ *     },
+ *   }),
+ *   action: (setState, state, utils) => ({
+ *     plus(num: number) {
+ *       setState('value', value => value + num)
+ *     },
+ *   }),
+ * })
+ *
+ * // usage
+ * const [state, actions] = useTestState()
+ *
+ * render(() => (
+ *   <GlobalStateProvider> {optional}
+ *     state: <p>{state().value}</p>
+ *
+ *     getter: <p>{state.doubleValue()}</p>
+ *     getter: <p>{getters.doubleValue()}</p>
+ *
+ *     action: <button onClick={actions.double}>double</button><br />
+ *     action: <button onClick={() => actions.plus(2)}>plus 2</button>
+ *   </GlobalStateProvider>
+ * ))
+ *
+ * // use produce
+ * state.$patch((state) => {
+ *   state.deep.data = 'patch'
+ * })
+ * // use reconcile but support partial state
+ * state.$patch({
+ *   test: 2
+ * })
+ *
+ * // createEffect(on()), defer by default
+ * state.$subscribe(
+ *   s => s.deep.data, // or state access path ('deep.data')
+ *   (state, oldState) => console.log(state, oldState),
+ *   { defer: false },
+ * )
+ *
+ * // reset
+ * state.$reset()
+ * ```
  */
 export function defineState<
   State extends Record<string, any> = Record<string, any>,
@@ -48,10 +102,27 @@ export function defineState<
   _log?: boolean,
 ): Accessor<StateReturn<State, Getter, Action>>
 /**
- * initialize global state with function
+ * global-level context & provider
  * @param name state name
  * @param setup state setup function
  * @param _log whether to enable log when dev, default is `false`
+ * @example
+ * ```ts
+ * import { createEffect, createMemo, createSignal } from 'solid-js'
+ * import { defineState } from '@solid-hooks/state'
+ *
+ * export const useCustomState = defineState('custom', (name, log) => {
+ *   const [plain, setPlain] = createSignal(1)
+ *   createEffect(() => {
+ *     log('defineState with custom function:', { name, newValue: plain() })
+ *   })
+ *   const plus2 = createMemo(() => plain() + 2)
+ *   function add() {
+ *     setPlain(p => p + 1)
+ *   }
+ *   return { plain, plus2, add }
+ * })
+ * ```
  */
 export function defineState<
   State extends Record<string, any> = Record<string, any>,
