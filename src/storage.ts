@@ -1,8 +1,34 @@
 import { type Path, type PathValue, pathGet, pathSet } from 'object-path-access'
 import { createStore, reconcile, unwrap } from 'solid-js/store'
 import type { BaseOptions } from 'solid-js/types/reactive/signal.js'
+import type { UseStore, del, get, set } from 'idb-keyval'
 import { maybePromise } from './utils'
 import type { PersistenceSyncAPI, PersistenceSyncData } from './sync'
+
+/**
+ * use IndexedDB storage with `idb-keyval`
+ * @example
+ * ```ts
+ * import { createIdbStorage, persistStateFn } from '@solid-hooks/state'
+ * import { del, get, set } from 'idb-keyval'
+ *
+ * const idbStorage = createIdbStorage({ get, set, del })
+ * const stateFn = persistStateFn({
+ *   storage: idbStorage,
+ *   // ...
+ * }),
+ * ```
+ */
+export function createIdbStorage(
+  fn: { get: typeof get, set: typeof set, del: typeof del },
+  customStore?: UseStore,
+): AnyStorage {
+  return {
+    getItem: key => fn.get(key, customStore) as any,
+    setItem: (key, val) => fn.set(key, val, customStore),
+    removeItem: key => fn.del(key, customStore),
+  }
+}
 
 export type PersistOptions<State extends object, Paths extends Path<State>[] = []> = {
   /**
@@ -147,7 +173,24 @@ export function useStorage<T extends object, Paths extends Path<T>[]>(
 }
 
 /**
- * persist state function
+ * persist state function, if you want to persist state in IndexedDB, see {@link createIdbStorage createIdbStorage}
+ * @example
+ * ```ts
+ * import { defineState, persistStateFn, storageSync } from '@solid-hooks/state'
+ *
+ * const useTestState = defineState('test', {
+ *   init,
+ *   // ...
+ *   // custom state function
+ *   stateFn: persistStateFn({
+ *     key: 'other-key', // state.$id by default
+ *     serializer: { write: JSON.stringify, read: JSON.parse, }, // JSON by default
+ *     storage: localStorage, // localStorage by default, async storage available
+ *     path: ['test'], // type-safe state access path, support array
+ *     sync: storageSync, // sync persisted data
+ *   }),
+ * })
+ * ```
  */
 export function persistStateFn<State extends object, Paths extends Path<State>[] = []>(
   persistOptions?: PersistOptions<State, Paths> & { key?: string },
