@@ -1,29 +1,22 @@
-import { pathGet } from 'object-path-access'
 import type { Accessor, FlowProps, Owner } from 'solid-js'
 import {
   DEV,
-  batch,
   createComponent,
   createContext,
-  createEffect,
   createRoot,
   getOwner,
-  on,
   runWithOwner,
   useContext,
 } from 'solid-js'
-import { createStore, produce, reconcile, unwrap } from 'solid-js/store'
-import { klona as deepClone } from 'klona'
-import type { AnyFunction } from '@subframe7536/type-utils'
+import { unwrap } from 'solid-js/store'
 import type {
   ActionObject,
   GetterObject,
   StateReturn,
   StateSetupFunction,
   StateSetupObject,
-  StateUtils,
 } from './types'
-import { createActions, createGetters } from './utils'
+import { createActions, createGetters, createStateWithUtils } from './utils'
 
 type GlobalStateContext = {
   owner: Owner | null
@@ -186,38 +179,16 @@ function setupObject<
 >(
   setup: StateSetupObject<State, Getter, Action>,
 ): StateSetupFunction<StateReturn<State, Getter, Action>> {
-  const {
-    init,
-    getters,
-    actions,
-    stateFn = (state, stateName) => createStore<State>(state, { name: stateName }),
-  } = setup
+  const { init, getters, actions, stateFn } = setup
 
   return (stateName, log) => {
     const initialState = typeof init === 'function' ? init() : init
-    const [state, setState] = stateFn(deepClone(initialState), stateName)
-    const utils: StateUtils<State> = {
-      $id: stateName,
-      $patch: patcher => batch(() => setState(
-        typeof patcher === 'function'
-          ? produce(patcher as AnyFunction)
-          : reconcile(Object.assign({}, unwrap(state), patcher), { merge: true }),
-      )),
-      $reset: () => {
-        setState(reconcile(initialState, { merge: true }))
-      },
-      $subscribe: (access, callback, options = { defer: true }) => {
-        const deps = typeof access === 'string'
-          ? () => pathGet(state, access as any)
-          : () => access(state)
-        createEffect(on(deps, callback as AnyFunction, options))
-      },
-    }
+    const [state, setState, utils] = createStateWithUtils(stateName, initialState, stateFn)
 
     DEV && log('initial state:', unwrap(state))
 
     return [
-      Object.assign(() => state, utils, createGetters(getters, state, stateName)),
+      Object.assign(() => state, utils, createGetters(getters?.(state))),
       createActions(actions?.(setState, state, { $patch: utils.$patch, $reset: utils.$reset })),
     ]
   }

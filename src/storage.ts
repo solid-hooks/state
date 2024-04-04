@@ -4,6 +4,7 @@ import type { BaseOptions } from 'solid-js/types/reactive/signal.js'
 import type { UseStore, del, get, set } from 'idb-keyval'
 import { maybePromise } from './utils'
 import type { PersistenceSyncAPI, PersistenceSyncData } from './sync'
+import type { StateFn } from './types'
 
 /**
  * use IndexedDB storage with `idb-keyval`
@@ -186,7 +187,7 @@ export function useStorage<T extends object, Paths extends Path<T>[]>(
  *     key: 'other-key', // state.$id by default
  *     serializer: { write: JSON.stringify, read: JSON.parse, }, // JSON by default
  *     storage: localStorage, // localStorage by default, async storage available
- *     path: ['test'], // type-safe state access path, support array
+ *     path: ['test'], // type-safe state access path for persisted state, support array
  *     sync: storageSync, // sync persisted data
  *   }),
  * })
@@ -194,7 +195,7 @@ export function useStorage<T extends object, Paths extends Path<T>[]>(
  */
 export function persistStateFn<State extends object, Paths extends Path<State>[] = []>(
   persistOptions?: PersistOptions<State, Paths> & { key?: string },
-) {
+): StateFn<State> {
   return (state: State, stateName: string) =>
     useStorage(
       state,

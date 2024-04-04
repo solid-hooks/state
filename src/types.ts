@@ -51,6 +51,8 @@ export type StateReturn<
 
 export type InitialState<State extends object> = State | Accessor<State>
 
+export type StateFn<State extends object> = (state: State, stateName: string) => ReturnType<typeof createStore<State>>
+
 export type StateSetupObject<
   State extends object,
   Getter extends GetterObject,
@@ -76,7 +78,7 @@ export type StateSetupObject<
   /**
    * custom state function
    */
-  stateFn?: (state: State, stateName: string) => ReturnType<typeof createStore<State>>
+  stateFn?: StateFn<State>
 }
 
 export type StateAction<
@@ -94,81 +96,5 @@ export type StateGetter<
 
 export type GetterObject = Record<string, AnyFunction>
 export type ActionObject = Record<string, AnyFunction>
-
-/**
- * persist options for {@link $state}
- */
-export type PersistOptions<State extends object, Paths extends Path<State>[] = []> = {
-  /**
-   * whether to enable persist
-   */
-  enable: boolean
-  /**
-   * localStorage like api, support async
-   * @default localStorage
-   */
-  storage?: AnyStorage
-  /**
-   * identifier in storage
-   */
-  key?: string
-  /**
-   * serializer for persist state
-   * @default { read: JSON.parse, write: JSON.stringify }
-   */
-  serializer?: Serializer<FlattenType<PartialObject<State, Paths>>>
-  /**
-   * object paths to persist
-   * @example ['test.deep.data', 'idList[0]']
-   */
-  paths?: Paths | undefined
-}
-type PartialObject<
-  T extends object,
-  K extends Path<T>[],
-  V = Record<string, any>,
-> = K['length'] extends 0
-  ? T
-  : K['length'] extends 1
-    ? { [P in K[0] & string]: PathValue<T, P> }
-    : K extends [infer A, ...infer B]
-      // eslint-disable-next-line style/indent-binary-ops
-      ? V & {
-        [P in A & string]: PathValue<T, A & string>
-      } & (B extends any[] ? PartialObject<T, B, V> : {})
-      : never
-type FlattenType<T> = T extends infer U
-  ? ConvertType<{ [K in keyof U]: U[K] }>
-  : never
-type ConvertType<T> = {
-  [K in keyof T as K extends `${infer A}.${string}` ? A : K]: K extends `${string}.${infer B}`
-    ? ConvertType<{ [P in B]: T[K] }>
-    : T[K];
-}
-
-/**
- * serializer type for {@link PersistOptions}
- */
-export type Serializer<State> = {
-  /**
-   * Serializes state into string before storing
-   * @default JSON.stringify
-   */
-  write: (value: State) => string
-
-  /**
-   * Deserializes string into state before hydrating
-   * @default JSON.parse
-   */
-  read: (value: string) => State
-}
-
-type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
-
-export type AnyStorage = StorageLike | {
-  [K in keyof StorageLike]: (
-    ...args: Parameters<StorageLike[K]>
-  ) => Promise<ReturnType<StorageLike[K]>>
-}
 
 export type StateSetupFunction<T> = (stateName: string, log: AnyFunction<void>) => T

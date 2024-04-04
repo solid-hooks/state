@@ -1,25 +1,74 @@
-import { DEV, batch, createMemo, untrack } from 'solid-js'
-import type { Promisable } from '@subframe7536/type-utils'
-import type { ActionObject, GetterObject, StateGetter } from './types'
+import { batch, createEffect, createMemo, on, untrack } from 'solid-js'
+import type { AnyFunction, Promisable } from '@subframe7536/type-utils'
+import { pathGet } from 'object-path-access'
+import { type SetStoreFunction, createStore, produce, reconcile, unwrap } from 'solid-js/store'
+import { klona } from 'klona'
+import type { ActionObject, GetterObject, StateFn, StateUtils } from './types'
 
-export function createGetters<
-  State extends object = Record<string, any>,
-  Getter extends GetterObject = {},
->(
-  getters: StateGetter<State, Getter> | undefined,
-  store: State,
+export function defaultStateFn<T extends object>(state: T, stateName: string) {
+  return createStore<T>(state, { name: stateName })
+}
+
+/**
+ * `globalThis.structuredClone`, fallback to {@link klona}
+ */
+export function deepClone<T>(value: T): T {
+  return (globalThis.structuredClone || klona)(value)
+}
+
+/**
+ * create state with utils, use in {@link defineState}
+ */
+export function createStateWithUtils<T extends object>(
   stateName: string,
-) {
-  const _getters = {} as Readonly<Getter>
-  for (const [key, getter] of Object.entries(getters?.(store) || {})) {
+  initialState: T,
+  stateFn: StateFn<T> = defaultStateFn<T>,
+): [state: T, setState: SetStoreFunction<T>, utils: StateUtils<T>] {
+  const [state, setState] = stateFn(deepClone(initialState), stateName)
+  const utils: StateUtils<T> = {
+    $id: stateName,
+    $patch: patcher => batch(() => setState(
+      typeof patcher === 'function'
+        ? produce(patcher as AnyFunction)
+        : reconcile(Object.assign({}, unwrap(state), patcher), { merge: true }),
+    )),
+    $reset: () => {
+      setState(reconcile(initialState, { merge: true }))
+    },
+    $subscribe: (access, callback, options = { defer: true }) => {
+      const deps = typeof access === 'string'
+        ? () => pathGet(state, access as any)
+        : () => access(state)
+      createEffect(on(deps, callback as AnyFunction, options))
+    },
+  }
+  return [state, setState, utils]
+}
+
+/**
+ * create getters, wrap non-param function with `createMemo`
+ *
+ * use in {@link defineState}
+ */
+export function createGetters<T extends GetterObject>(getters?: T): T {
+  if (!getters) {
+    return {} as T
+  }
+  const _getters = {} as T
+  for (const [key, getter] of Object.entries(getters)) {
     // @ts-expect-error assign
     _getters[key] = getter.length === 0
-      ? createMemo(getter, undefined, DEV ? { name: `${stateName}-${key}` } : {})
+      ? createMemo(getter)
       : getter
   }
   return _getters
 }
 
+/**
+ * create actions, wrap functions with `batch(() => untrack(() => ...))`
+ *
+ * use in {@link defineState}
+ */
 export function createActions<T extends ActionObject>(functions?: T): T {
   if (!functions) {
     return {} as T
