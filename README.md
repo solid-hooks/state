@@ -108,7 +108,7 @@ const useTestState = defineState('test', {
     key: 'other-key', // state.$id by default
     serializer: { write: JSON.stringify, read: JSON.parse, }, // JSON by default
     storage: localStorage, // localStorage by default, async storage available
-    path: ['test'], // type-safe state access path, support array
+    path: ['test'], // type-safe state access path for persisted state, support array
     sync: storageSync, // sync persisted data
   }),
 })
@@ -127,16 +127,46 @@ const stateFn = persistStateFn({
 }),
 ```
 
-### Utils
+## Utils
+
+### Functions used in `defineState` with object
+
+```ts
+/**
+ * create state with utils, use in `SetupObject`
+ */
+function createStateWithUtils<T extends object>(stateName: string, initialState: T, stateFn?: StateFn<T>): [state: T, setState: SetStoreFunction<T>, utils: StateUtils<T>]
+/**
+ * create getters, wrap non-param function with `createMemo`
+ *
+ * use in `SetupObject`
+ */
+function createGetters<T extends GetterObject>(getters?: T): T
+/**
+ * create actions, wrap functions with `batch(() => untrack(() => ...))`
+ *
+ * use in `SetupObject`
+ */
+function createActions<T extends ActionObject>(actions?: T): T
+```
+
+### `deepClone`
+
+`globalThis.structuredClone`, fallback to `klona`
+
+### `useStorage`
 
 persist store to storage.
 
 low level function for `persistStateFn`
 
 ```ts
-import { useStorage } from '@solid-hooks/state'
+import { defineState, useStorage } from '@solid-hooks/state'
 
-const [data, setData] = useStorage({ test: 1 }, 'test-data', {/* options */})
+export const useCustomState = defineState('custom', (name, log) => {
+  const [data, setData] = useStorage({ test: 1 }, 'test-data', {/* options */})
+  // ,,,
+})
 ```
 
 ## Credit

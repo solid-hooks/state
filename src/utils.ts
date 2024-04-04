@@ -17,7 +17,7 @@ export function deepClone<T>(value: T): T {
 }
 
 /**
- * create state with utils, use in {@link defineState}
+ * create state with utils, use in {@link setupObject}
  */
 export function createStateWithUtils<T extends object>(
   stateName: string,
@@ -48,7 +48,7 @@ export function createStateWithUtils<T extends object>(
 /**
  * create getters, wrap non-param function with `createMemo`
  *
- * use in {@link defineState}
+ * use in {@link setupObject}
  */
 export function createGetters<T extends GetterObject>(getters?: T): T {
   if (!getters) {
@@ -67,18 +67,18 @@ export function createGetters<T extends GetterObject>(getters?: T): T {
 /**
  * create actions, wrap functions with `batch(() => untrack(() => ...))`
  *
- * use in {@link defineState}
+ * use in {@link setupObject}
  */
-export function createActions<T extends ActionObject>(functions?: T): T {
-  if (!functions) {
+export function createActions<T extends ActionObject>(actions?: T): T {
+  if (!actions) {
     return {} as T
   }
-  const actions = {}
-  for (const [name, fn] of Object.entries(functions)) {
+  const _actions = {}
+  for (const [name, fn] of Object.entries(actions)) {
     // @ts-expect-error assign
-    actions[name] = (...args) => batch(() => untrack(() => fn(...args)))
+    _actions[name] = (...args) => batch(() => untrack(() => fn(...args)))
   }
-  return actions as T
+  return _actions as T
 }
 
 export function maybePromise<T>(maybePromise: Promisable<T>, cb?: (data: T) => void) {
