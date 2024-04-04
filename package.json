@@ -29,7 +29,7 @@
   ],
   "scripts": {
     "lint": "tsc --noEmit && eslint . --max-warnings 0",
-    "dev": "vite serve playground",
+    "dev": "bun --bunx vite serve playground",
     "format": "eslint . --fix",
     "build": "tsup",
     "release": "pnpm lint && pnpm test && pnpm run build && bumpp --all && npm publish",
