@@ -44,12 +44,12 @@
   },
   "dependencies": {
     "klona": "^2.0.6",
-    "object-path-access": "^3.0.0"
+    "object-path-access": "^4.0.0"
   },
   "devDependencies": {
-    "@subframe7536/eslint-config": "^0.6.0",
+    "@subframe7536/eslint-config": "^0.6.1",
     "@subframe7536/type-utils": "^0.1.6",
-    "@types/node": "^20.12.3",
+    "@types/node": "^20.12.5",
     "bumpp": "^9.4.0",
     "eslint": "^8.57.0",
     "eslint-plugin-solid": "^0.13.2",
@@ -57,8 +57,8 @@
     "jsdom": "^24.0.0",
     "solid-js": "^1.8.16",
     "tsup": "^8.0.2",
-    "typescript": "^5.4.3",
-    "vite": "^5.2.7",
+    "typescript": "^5.4.4",
+    "vite": "^5.2.8",
     "vite-plugin-solid": "^2.10.2",
     "vitest": "^1.4.0"
   }
