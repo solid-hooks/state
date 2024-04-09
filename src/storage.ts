@@ -2,6 +2,7 @@ import { type Path, type PathValue, pathGet, pathSet } from 'object-path-access'
 import { createStore, reconcile, unwrap } from 'solid-js/store'
 import type { BaseOptions } from 'solid-js/types/reactive/signal.js'
 import type { UseStore, del, get, set } from 'idb-keyval'
+import { DEV } from 'solid-js'
 import { maybePromise } from './utils'
 import type { PersistenceSyncAPI, PersistenceSyncData } from './sync'
 import type { StateFn } from './types'
@@ -68,9 +69,8 @@ type PartialObject<
         [P in A & string]: PathValue<T, A & string>
       } & (B extends any[] ? PartialObject<T, B, V> : {})
       : never
-type FlattenType<T> = T extends infer U
-  ? ConvertType<{ [K in keyof U]: U[K] }>
-  : never
+type FlattenType<T> = T extends infer U ? ConvertType<{ [K in keyof U]: U[K] }> : never
+
 type ConvertType<T> = {
   [K in keyof T as K extends `${infer A}.${string}` ? A : K]: K extends `${string}.${infer B}`
     ? ConvertType<{ [P in B]: T[K] }>

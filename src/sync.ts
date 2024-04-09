@@ -1,3 +1,5 @@
+import { DEV } from 'solid-js'
+
 export type PersistenceSyncData = {
   key: string
   newValue: string | null | undefined
@@ -27,29 +29,34 @@ export const storageSync: PersistenceSyncAPI = [
  */
 export function messageSync(channel: Window | BroadcastChannel = window): PersistenceSyncAPI {
   return [
-    (subscriber: PersistenceSyncCallback) => channel.addEventListener(
-      'message',
-      ev => subscriber(JSON.parse((ev as MessageEvent).data)),
-    ),
-    (key, newValue) => postMessage(
-      JSON.stringify({ key, newValue, url: location.href }),
+    (subscriber: PersistenceSyncCallback) =>
+      channel.addEventListener('message', (ev) => {
+        subscriber((ev as MessageEvent).data)
+      }),
+    (key, newValue) => channel.postMessage(
+      { key, newValue, timeStamp: +new Date(), url: location.href },
       location.origin,
     ),
   ]
 }
-
 /**
  * wsSync - syncronize persisted storage via web socket
  */
-export function wsSync(ws: WebSocket): PersistenceSyncAPI {
+export function wsSync(ws: WebSocket, warnOnError?: boolean): PersistenceSyncAPI {
   return [
-    (cb: PersistenceSyncCallback) =>
+    (subscriber: PersistenceSyncCallback) =>
       ws.addEventListener('message', (ev: MessageEvent) => {
         try {
-          cb(JSON.parse(ev.data))
-        } catch { }
+          const data = JSON.parse(ev.data)
+          if (['key', 'newValue', 'timeStamp'].every(item => Object.hasOwn(data, item))) {
+            subscriber(data)
+          }
+        } catch (e) {
+          DEV && warnOnError && console.warn(e)
+        }
       }),
-    (key, newValue) => ws.send(JSON.stringify({ key, newValue, url: location.href })),
+    (key, newValue) =>
+      ws.send(JSON.stringify({ key, newValue, timeStamp: +new Date(), url: location.href })),
   ]
 }
 
