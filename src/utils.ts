@@ -50,7 +50,7 @@ export function createStateWithUtils<T extends object>(
  *
  * use in {@link setupObject}
  */
-export function createGetters<T extends GetterObject>(getters?: T): T {
+export function createStateGetter<T extends GetterObject>(getters?: T): T {
   if (!getters) {
     return {} as T
   }
@@ -69,7 +69,7 @@ export function createGetters<T extends GetterObject>(getters?: T): T {
  *
  * use in {@link setupObject}
  */
-export function createActions<T extends ActionObject>(actions?: T): T {
+export function createStateAction<T extends ActionObject>(actions?: T): T {
   if (!actions) {
     return {} as T
   }

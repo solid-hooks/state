@@ -16,7 +16,7 @@ import type {
   StateSetupFunction,
   StateSetupObject,
 } from './types'
-import { createActions, createGetters, createStateWithUtils } from './utils'
+import { createStateAction, createStateGetter, createStateWithUtils } from './utils'
 
 type GlobalStateContext = {
   owner: Owner | null
@@ -188,8 +188,8 @@ function setupObject<
     DEV && log('initial state:', unwrap(state))
 
     return [
-      Object.assign(() => state, utils, createGetters(getters?.(state))),
-      createActions(actions?.(setState, state, { $patch: utils.$patch, $reset: utils.$reset })),
+      Object.assign(() => state, utils, createStateGetter(getters?.(state))),
+      createStateAction(actions?.(setState, state, { $patch: utils.$patch, $reset: utils.$reset })),
     ]
   }
 }

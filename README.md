@@ -120,7 +120,7 @@ const useTestState = defineState('test', {
 import { createIdbStorage, persistStateFn } from '@solid-hooks/state'
 import { del, get, set } from 'idb-keyval'
 
-const idbStorage = createIdbStorage({ get, set, del })
+const idbStorage = createIdbStorage(get, set, del)
 const stateFn = persistStateFn({
   storage: idbStorage,
   // ...
@@ -135,19 +135,23 @@ const stateFn = persistStateFn({
 /**
  * create state with utils, use in `SetupObject`
  */
-function createStateWithUtils<T extends object>(stateName: string, initialState: T, stateFn?: StateFn<T>): [state: T, setState: SetStoreFunction<T>, utils: StateUtils<T>]
+function createStateWithUtils<T extends object>(
+  stateName: string,
+  initialState: T,
+  stateFn?: StateFn<T>
+): [state: T, setState: SetStoreFunction<T>, utils: StateUtils<T>]
 /**
  * create getters, wrap non-param function with `createMemo`
  *
  * use in `SetupObject`
  */
-function createGetters<T extends GetterObject>(getters?: T): T
+function createStateGetter<T extends GetterObject>(getters?: T): T
 /**
  * create actions, wrap functions with `batch(() => untrack(() => ...))`
  *
  * use in `SetupObject`
  */
-function createActions<T extends ActionObject>(actions?: T): T
+function createStateAction<T extends ActionObject>(actions?: T): T
 ```
 
 ### `deepClone`

@@ -1,7 +1,7 @@
 import { type Path, type PathValue, pathGet, pathSet } from 'object-path-access'
 import { createStore, reconcile, unwrap } from 'solid-js/store'
 import type { BaseOptions } from 'solid-js/types/reactive/signal.js'
-import type { UseStore, del, get, set } from 'idb-keyval'
+import type { UseStore, del as idbDel, get as idbGet, set as idbSet } from 'idb-keyval'
 import { maybePromise } from './utils'
 import type { PersistenceSyncAPI, PersistenceSyncData } from './sync'
 import type { StateFn } from './types'
@@ -13,7 +13,7 @@ import type { StateFn } from './types'
  * import { createIdbStorage, persistStateFn } from '@solid-hooks/state'
  * import { del, get, set } from 'idb-keyval'
  *
- * const idbStorage = createIdbStorage({ get, set, del })
+ * const idbStorage = createIdbStorage(get, set, del)
  * const stateFn = persistStateFn({
  *   storage: idbStorage,
  *   // ...
@@ -21,13 +21,15 @@ import type { StateFn } from './types'
  * ```
  */
 export function createIdbStorage(
-  fn: { get: typeof get, set: typeof set, del: typeof del },
+  get: typeof idbGet,
+  set: typeof idbSet,
+  del: typeof idbDel,
   customStore?: UseStore,
 ): AnyStorage {
   return {
-    getItem: key => fn.get(key, customStore) as any,
-    setItem: (key, val) => fn.set(key, val, customStore),
-    removeItem: key => fn.del(key, customStore),
+    getItem: key => get(key, customStore) as any,
+    setItem: (key, val) => set(key, val, customStore),
+    removeItem: key => del(key, customStore),
   }
 }
 
@@ -79,7 +81,7 @@ type ConvertType<T> = {
 /**
  * serializer type for {@link PersistOptions}
  */
-export type Serializer<State> = {
+export type Serializer<State = unknown> = {
   /**
    * Serializes state into string before storing
    * @default JSON.stringify
