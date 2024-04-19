@@ -45,7 +45,7 @@ const useTestState = defineState('test', {
 const [state, actions] = useTestState()
 
 render(() => (
-  <GlobalStateProvider> {/* optional */}
+  <GlobalStateProvider>
     state: <p>{state().value}</p>
 
     getter: <p>{state.doubleValue()}</p>
@@ -92,6 +92,26 @@ export const useCustomState = defineState('custom', (name, log) => {
     setPlain(p => p + 1)
   }
   return { plain, plus2, add }
+})
+```
+
+### Without provider
+
+```ts
+import { defineGlobalState } from '@solid-hooks/state'
+
+const useTestState = defineGlobalState('test', {
+  init: { value: 1, deep: { data: 'hello' } },
+  getter: state => ({
+    doubleValue() {
+      return state.value * 2
+    },
+  }),
+  action: (setState, state, utils) => ({
+    plus(num: number) {
+      setState('value', value => value + num)
+    },
+  }),
 })
 ```
 

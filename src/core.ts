@@ -1,4 +1,4 @@
-import type { Accessor, FlowProps, Owner } from 'solid-js'
+import type { Accessor, Context, FlowProps, Owner } from 'solid-js'
 import {
   DEV,
   createComponent,
@@ -23,7 +23,7 @@ type GlobalStateContext = {
   map: Map<string, any>
 }
 
-const STATE_CTX = createContext<GlobalStateContext>({ owner: null, map: new Map() })
+let STATE_CTX: Context<GlobalStateContext | undefined>
 /**
  * initialize global state with setup object.
  * If you want to persist data, see {@link persistStateFn persistStateFn}
@@ -117,9 +117,7 @@ export function defineState<
  * })
  * ```
  */
-export function defineState<
-  State extends Record<string, any> = Record<string, any>,
->(
+export function defineState<State extends Record<string, any> = Record<string, any>>(
   name: string,
   setup: StateSetupFunction<State>,
   _log?: boolean,
@@ -138,20 +136,133 @@ export function defineState<
 
   return () => {
     const ctx = useContext(STATE_CTX)
-    const _map = ctx.map
-    if (_map.has(name)) {
-      return _map.get(name)
+    const _map = ctx?.map
+    if (DEV && !_map) {
+      throw new Error('the state must be used inside <GlobalStateProvider />')
     }
-    function attach(result: State | StateReturn<State, Getter, Action>) {
-      _map.set(name, result)
+    if (_map!.has(name)) {
+      return _map!.get(name)
+    }
+    return runWithOwner(ctx!.owner, () => {
+      const result = build(stateName, log)
+      _map!.set(name, result)
       // @ts-expect-error for GC
       build = null
       return result
-    }
-    return ctx.owner
-      ? runWithOwner(ctx.owner, () => attach(build(stateName, log)))
-      : attach(createRoot(() => build(stateName, log)))
+    })
   }
+}
+
+/**
+ * initialize global state with setup object, no `GlobalProvider` needed.
+ * If you want to persist data, see {@link persistStateFn persistStateFn}
+ * @param name state name
+ * @param setup state setup object, see {@link StateSetupObject type}
+ * @param _log whether to enable log when dev, default is `false`
+ * @example
+ * ```tsx
+ * import { GlobalStateProvider, defineGlobalState, storageSync } from '@solid-hooks/state'
+ *
+ * // like Pinia's Option Store
+ * const useTestState = defineGlobalState('test', {
+ *   init: { value: 1, deep: { data: 'hello' } },
+ *   getter: state => ({
+ *     // without param, will auto wrapped with `createMemo`
+ *     doubleValue() {
+ *       return state.value * 2
+ *     },
+ *   }),
+ *   action: (setState, state, utils) => ({
+ *     plus(num: number) {
+ *       setState('value', value => value + num)
+ *     },
+ *   }),
+ * })
+ *
+ * // usage
+ * const [state, actions] = useTestState()
+ *
+ * render(() => (
+ *   <>
+ *     state: <p>{state().value}</p>
+ *
+ *     getter: <p>{state.doubleValue()}</p>
+ *     getter: <p>{getters.doubleValue()}</p>
+ *
+ *     action: <button onClick={actions.double}>double</button><br />
+ *     action: <button onClick={() => actions.plus(2)}>plus 2</button>
+ *   </>
+ * ))
+ *
+ * // use produce
+ * state.$patch((state) => {
+ *   state.deep.data = 'patch'
+ * })
+ * // use reconcile but support partial state
+ * state.$patch({
+ *   test: 2
+ * })
+ *
+ * // createEffect(on()), defer by default
+ * state.$subscribe(
+ *   s => s.deep.data, // or state access path ('deep.data')
+ *   (state, oldState) => console.log(state, oldState),
+ *   { defer: false },
+ * )
+ *
+ * // reset
+ * state.$reset()
+ * ```
+ */
+export function defineGlobalState<
+  State extends Record<string, any> = Record<string, any>,
+  Getter extends GetterObject = {},
+  Action extends ActionObject = {},
+>(
+  name: string,
+  setup: StateSetupObject<State, Getter, Action>,
+  _log?: boolean,
+): Accessor<StateReturn<State, Getter, Action>>
+/**
+ * global-level context & provider, no `GlobalProvider` needed
+ * @param name state name
+ * @param setup state setup function
+ * @param _log whether to enable log when dev, default is `false`
+ * @example
+ * ```ts
+ * import { createEffect, createMemo, createSignal } from 'solid-js'
+ * import { defineGlobalState } from '@solid-hooks/state'
+ *
+ * export const useCustomState = defineGlobalState('custom', (name, log) => {
+ *   const [plain, setPlain] = createSignal(1)
+ *   createEffect(() => {
+ *     log('defineState with custom function:', { name, newValue: plain() })
+ *   })
+ *   const plus2 = createMemo(() => plain() + 2)
+ *   function add() {
+ *     setPlain(p => p + 1)
+ *   }
+ *   return { plain, plus2, add }
+ * })
+ * ```
+ */
+export function defineGlobalState<State extends Record<string, any> = Record<string, any>>(
+  name: string,
+  setup: StateSetupFunction<State>,
+  _log?: boolean,
+): Accessor<State>
+export function defineGlobalState<
+  State extends Record<string, any> = Record<string, any>,
+  Getter extends GetterObject = {},
+  Action extends GetterObject = {},
+>(
+  name: string,
+  setup: StateSetupObject<State, Getter, Action> | StateSetupFunction<State>,
+): Accessor<State | StateReturn<State, Getter, Action>> {
+  const stateName = `state-${name}`
+  const log = (...args: any[]) => console.log(`[${stateName}]`, ...args)
+  const _ = createRoot(() => (typeof setup === 'function' ? setup : setupObject(setup))(name, log))
+  return () => _
 }
 
 /**
@@ -162,6 +273,7 @@ export function GlobalStateProvider(props: FlowProps) {
   if (DEV && !_owner) {
     throw new Error('<GlobalStateProvider /> must be set inside component')
   }
+  STATE_CTX = createContext<GlobalStateContext>()
   return createComponent(STATE_CTX.Provider, {
     value: {
       owner: _owner!,
@@ -172,6 +284,7 @@ export function GlobalStateProvider(props: FlowProps) {
     },
   })
 }
+
 function setupObject<
   State extends Record<string, any> = Record<string, any>,
   Getter extends GetterObject = {},

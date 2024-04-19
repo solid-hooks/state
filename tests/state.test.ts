@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'solid-js'
-import { defineState, persistStateFn } from '../src'
+import { defineGlobalState, persistStateFn } from '../src'
 
 describe('test state', () => {
   it('defineState', async () => {
     const callback = vi.fn()
     const deepCallback = vi.fn()
     const cacheCount = vi.fn()
-    const useState = defineState('test-utils', {
+    const useState = defineGlobalState('test-utils', {
       init: { deep: { test: 1 }, foo: 'bar' },
       getters: state => ({
         doubleValue() {
@@ -63,7 +63,7 @@ describe('test state', () => {
   })
   it('nest defineState', async () => {
     const initialState = { count: 0 }
-    const useState = defineState('test-nest', {
+    const useState = defineGlobalState('test-nest', {
       init: initialState,
       getters: state => ({
         fresh: () => {
@@ -76,7 +76,7 @@ describe('test state', () => {
       }),
     })
     const [state, actions] = useState()
-    const useTempState = defineState('test-nest-temp', {
+    const useTempState = defineGlobalState('test-nest-temp', {
       init: { ...initialState },
       actions: setState => ({
         generate: () => {
@@ -97,7 +97,7 @@ describe('test state', () => {
     const initialState = { count: 0 }
     const kv = new Map()
     const key = 'state-test-persist'
-    const useState = defineState('test-persist', {
+    const useState = defineGlobalState('test-persist', {
       init: initialState,
       actions: setState => ({
         increment: () => setState('count', n => n + 1),
@@ -136,7 +136,7 @@ describe('test state', () => {
     }
     const kv = new Map()
     const key = 'state-test-persist-optional'
-    const useState = defineState('test-persist-optional', {
+    const useState = defineGlobalState('test-persist-optional', {
       init: initialState,
       actions: (setState, state) => ({
         increment: () => {
