@@ -32,7 +32,8 @@ let STATE_CTX: Context<GlobalStateContext | undefined>
  * @param _log whether to enable log when dev, default is `false`
  * @example
  * ```tsx
- * import { GlobalStateProvider, defineState, storageSync } from '@solid-hooks/state'
+ * import { GlobalStateProvider } from '@solid-hooks/state'
+ * import { defineState, storageSync } from '@solid-hooks/state/persist'
  *
  * // like Pinia's Option Store
  * const useTestState = defineState('test', {

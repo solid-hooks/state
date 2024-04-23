@@ -1,4 +1,5 @@
-import { defineState, persistStateFn } from '../src/index'
+import { defineState } from '../src'
+import { persistStateFn } from '../src/persist'
 
 export const useTestState = defineState('test', {
   init: { count: 0 },

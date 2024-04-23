@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'solid-js'
-import { defineGlobalState, persistStateFn } from '../src'
+import { defineGlobalState } from '../src'
+import { persistStateFn } from '../src/persist'
 
 describe('test state', () => {
   it('defineState', async () => {
