@@ -118,7 +118,8 @@ const useTestState = defineGlobalState('test', {
 ### Persist
 
 ```ts
-import { defineState, persistStateFn, storageSync } from '@solid-hooks/state'
+import { defineState } from '@solid-hooks/state'
+import { persistStateFn, storageSync } from '@solid-hooks/state/persist'
 
 const useTestState = defineState('test', {
   init,
@@ -137,7 +138,7 @@ const useTestState = defineState('test', {
 #### IndexedDB
 
 ```ts
-import { createIdbStorage, persistStateFn } from '@solid-hooks/state'
+import { createIdbStorage, persistStateFn } from '@solid-hooks/state/persist'
 
 const idbStorage = createIdbStorage('db-name')
 const stateFn = persistStateFn({

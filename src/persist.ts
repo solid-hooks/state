@@ -4,11 +4,14 @@ import { createStore } from 'solid-js/store'
 import { DEV } from 'solid-js'
 import type { StateFn } from './types'
 
+export * from '@solid-hooks/persist'
+
 /**
  * persist state function, if you want to persist state in IndexedDB, see {@link createIdbStorage createIdbStorage}
  * @example
  * ```ts
- * import { defineState, persistStateFn, storageSync } from '@solid-hooks/state'
+ * import { defineState } from '@solid-hooks/state'
+ * import { persistStateFn, storageSync } from '@solid-hooks/state/persist'
  *
  * const useTestState = defineState('test', {
  *   init,
