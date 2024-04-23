@@ -6,5 +6,4 @@ export type {
   StateSetupFunction,
   StateReturn,
 } from './types'
-export * from './sync'
 export * from './utils'

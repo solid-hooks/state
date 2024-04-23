@@ -138,9 +138,8 @@ const useTestState = defineState('test', {
 
 ```ts
 import { createIdbStorage, persistStateFn } from '@solid-hooks/state'
-import { del, get, set } from 'idb-keyval'
 
-const idbStorage = createIdbStorage(get, set, del)
+const idbStorage = createIdbStorage('db-name')
 const stateFn = persistStateFn({
   storage: idbStorage,
   // ...
@@ -177,21 +176,6 @@ function createStateAction<T extends ActionObject>(actions?: T): T
 ### `deepClone`
 
 `globalThis.structuredClone`, fallback to `klona`
-
-### `useStorage`
-
-persist store to storage.
-
-low level function for `persistStateFn`
-
-```ts
-import { defineState, useStorage } from '@solid-hooks/state'
-
-export const useCustomState = defineState('custom', (name, log) => {
-  const [data, setData] = useStorage({ test: 1 }, 'test-data', {/* options */})
-  // ,,,
-})
-```
 
 ## Credit
 
