@@ -23,7 +23,7 @@ pnpm add @solid-hooks/state
 support run without provider (use `createRoot`)
 
 ```tsx
-import { GlobalStateProvider, defineState, persistStateFn, storageSync } from '@solid-hooks/state'
+import { defineState, GlobalStateProvider, persistStateFn, storageSync } from '@solid-hooks/state'
 
 // like Pinia's Option Store
 const useTestState = defineState('test', {
@@ -46,13 +46,24 @@ const [state, actions] = useTestState()
 
 render(() => (
   <GlobalStateProvider>
-    state: <p>{state().value}</p>
+    state:
+    {' '}
+    <p>{state().value}</p>
 
-    getter: <p>{state.doubleValue()}</p>
-    getter: <p>{getters.doubleValue()}</p>
+    getter:
+    {' '}
+    <p>{state.doubleValue()}</p>
+    getter:
+    {' '}
+    <p>{getters.doubleValue()}</p>
 
-    action: <button onClick={actions.double}>double</button><br />
-    action: <button onClick={() => actions.plus(2)}>plus 2</button>
+    action:
+    {' '}
+    <button onClick={actions.double}>double</button>
+    <br />
+    action:
+    {' '}
+    <button onClick={() => actions.plus(2)}>plus 2</button>
   </GlobalStateProvider>
 ))
 
@@ -79,8 +90,8 @@ state.$reset()
 or just a global-level context & provider
 
 ```ts
-import { createEffect, createMemo, createSignal } from 'solid-js'
 import { defineState } from '@solid-hooks/state'
+import { createEffect, createMemo, createSignal } from 'solid-js'
 
 export const useCustomState = defineState('custom', (name, log) => {
   const [plain, setPlain] = createSignal(1)
@@ -144,7 +155,7 @@ const idbStorage = createIdbStorage('db-name')
 const stateFn = persistStateFn({
   storage: idbStorage,
   // ...
-}),
+})
 ```
 
 ## Utils

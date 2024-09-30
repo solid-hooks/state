@@ -1,7 +1,7 @@
-import type { Path, PathValue } from 'object-path-access'
-import type { SetStoreFunction, Store, createStore } from 'solid-js/store'
 import type { AnyFunction } from '@subframe7536/type-utils'
+import type { Path, PathValue } from 'object-path-access'
 import type { Accessor, OnEffectFunction, OnOptions } from 'solid-js'
+import type { createStore, SetStoreFunction, Store } from 'solid-js/store'
 
 /**
  * create effect dep

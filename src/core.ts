@@ -1,14 +1,4 @@
-import type { Accessor, Context, FlowProps, Owner } from 'solid-js'
-import {
-  DEV,
-  createComponent,
-  createContext,
-  createRoot,
-  getOwner,
-  runWithOwner,
-  useContext,
-} from 'solid-js'
-import { unwrap } from 'solid-js/store'
+import type { Accessor, Context, FlowProps, JSXElement, Owner } from 'solid-js'
 import type {
   ActionObject,
   GetterObject,
@@ -16,6 +6,16 @@ import type {
   StateSetupFunction,
   StateSetupObject,
 } from './types'
+import {
+  createComponent,
+  createContext,
+  createRoot,
+  DEV,
+  getOwner,
+  runWithOwner,
+  useContext,
+} from 'solid-js'
+import { unwrap } from 'solid-js/store'
 import { createStateAction, createStateGetter, createStateWithUtils } from './utils'
 
 type GlobalStateContext = {
@@ -133,7 +133,7 @@ export function defineState<
 ): Accessor<State | StateReturn<State, Getter, Action>> {
   const stateName = `state-${name}`
   let build = typeof setup === 'function' ? setup : setupObject(setup)
-  const log = (...args: any[]) => console.log(`[${stateName}]`, ...args)
+  const log = DEV ? (...args: any[]) => console.log(`[${stateName}]`, ...args) : () => {}
 
   return () => {
     const ctx = useContext(STATE_CTX)
@@ -261,7 +261,7 @@ export function defineGlobalState<
   setup: StateSetupObject<State, Getter, Action> | StateSetupFunction<State>,
 ): Accessor<State | StateReturn<State, Getter, Action>> {
   const stateName = `state-${name}`
-  const log = (...args: any[]) => console.log(`[${stateName}]`, ...args)
+  const log = DEV ? (...args: any[]) => console.log(`[${stateName}]`, ...args) : () => { }
   const _ = createRoot(() => (typeof setup === 'function' ? setup : setupObject(setup))(name, log))
   return () => _
 }
@@ -269,10 +269,10 @@ export function defineGlobalState<
 /**
  * global state provider
  */
-export function GlobalStateProvider(props: FlowProps) {
+export function GlobalStateProvider(props: FlowProps): JSXElement {
   const _owner = getOwner()
   if (DEV && !_owner) {
-    throw new Error('<GlobalStateProvider /> must be set inside component')
+    throw new Error('<GlobalStateProvider /> does not exists in component tree')
   }
   STATE_CTX = createContext<GlobalStateContext>()
   return createComponent(STATE_CTX.Provider, {

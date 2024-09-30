@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'solid-js'
+import { describe, expect, it, vi } from 'vitest'
 import { defineGlobalState } from '../src'
 import { persistStateFn } from '../src/persist'
 

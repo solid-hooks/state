@@ -1,11 +1,11 @@
-import { batch, createEffect, createMemo, on, untrack } from 'solid-js'
-import type { AnyFunction, Promisable } from '@subframe7536/type-utils'
-import { pathGet } from 'object-path-access'
-import { type SetStoreFunction, createStore, produce, reconcile, unwrap } from 'solid-js/store'
-import { klona } from 'klona'
+import type { AnyFunction } from '@subframe7536/type-utils'
 import type { ActionObject, GetterObject, StateFn, StateUtils } from './types'
+import { klona } from 'klona'
+import { pathGet } from 'object-path-access'
+import { batch, createEffect, createMemo, on, untrack } from 'solid-js'
+import { createStore, produce, reconcile, type SetStoreFunction, unwrap } from 'solid-js/store'
 
-export function defaultStateFn<T extends object>(state: T, stateName: string) {
+export function defaultStateFn<T extends object>(state: T, stateName: string): ReturnType<typeof createStore<T>> {
   return createStore<T>(state, { name: stateName })
 }
 
@@ -79,8 +79,4 @@ export function createStateAction<T extends ActionObject>(actions?: T): T {
     _actions[name] = (...args) => batch(() => untrack(() => fn(...args)))
   }
   return _actions as T
-}
-
-export function maybePromise<T>(maybePromise: Promisable<T>, cb?: (data: T) => void) {
-  maybePromise instanceof Promise ? maybePromise.then(cb) : cb?.(maybePromise)
 }
