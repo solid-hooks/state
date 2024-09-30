@@ -5,4 +5,5 @@ export default defineEslintConfig({
     files: './playground/**.*',
     rules: 'ts/explicit-function-return-type',
   },
+  ignoreAll: 'playground/index.html',
 })
